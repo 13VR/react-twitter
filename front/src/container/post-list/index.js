@@ -1,4 +1,4 @@
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
 
 import Title from "../../component/title";
 import Grid from "../../component/grid";
@@ -8,6 +8,7 @@ import PostItem from "../../container/post-litem";
 import PostCreate from "../post-create";
 import { Alert, Skeleton, LOAD_STATUS } from "../../component/load";
 
+import { useWindowListener } from "../../util/useWindowListener";
 import { getDate } from "../../util/getDate";
 
 export default function Container() {
@@ -46,12 +47,42 @@ export default function Container() {
     isEmpty: raw.list.length === 0,
   });
 
-  if (status === null) {
+  useEffect(() => {
     getData();
-  }
+
+    const intervalId = setInterval(() => getData(), 5000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  useWindowListener("pointermove", (e) => {
+    setPosition({ x: e.clientX, y: e.clientY });
+  });
+
+  // if (status === null) {
+  //   getData();
+  // }
 
   return (
     <Grid>
+      <div
+        style={{
+          position: "absolute",
+          backgroundColor: "pink",
+          borderRadius: "50%",
+          opacity: 0.6,
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          pointerEvents: "none",
+          left: -20,
+          top: -20,
+          width: 40,
+          height: 40,
+        }}
+      />
       <Box>
         <Grid>
           <Title>Home</Title>
