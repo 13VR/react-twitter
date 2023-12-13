@@ -1,4 +1,4 @@
-import { useState, Fragment, useEffect } from "react";
+import { useState, Fragment, useEffect,  } from "react";
 
 import Title from "../../component/title";
 import Grid from "../../component/grid";
@@ -62,10 +62,6 @@ export default function Container() {
   useWindowListener("pointermove", (e) => {
     setPosition({ x: e.clientX, y: e.clientY });
   });
-
-  // if (status === null) {
-  //   getData();
-  // }
 
   return (
     <Grid>
