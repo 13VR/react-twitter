@@ -1,4 +1,4 @@
-import { useState, Fragment, useEffect } from "react";
+import { useState, Fragment, useEffect, useReducer } from "react";
 
 import Title from "../../component/title";
 import Grid from "../../component/grid";
@@ -10,14 +10,17 @@ import { Alert, Skeleton, LOAD_STATUS } from "../../component/load";
 
 import { useWindowListener } from "../../util/useWindowListener";
 import { getDate } from "../../util/getDate";
+import {
+  requestInitialState,
+  requestReducer,
+  REQUEST_ACTION_TYPE,
+} from "../../util/request";
 
 export default function Container() {
-  const [status, setStatus] = useState(null);
-  const [message, setMessage] = useState("");
-  const [data, setData] = useState(null);
+  const [state, dispatch] = useReducer(requestReducer, requestInitialState);
 
   const getData = async () => {
-    setStatus(LOAD_STATUS.PROGRESS);
+    dispatch({ type: REQUEST_ACTION_TYPE.PROGRESS });
 
     try {
       const res = await fetch("http://localhost:4000/post-list");
@@ -25,15 +28,21 @@ export default function Container() {
       const data = await res.json();
 
       if (res.ok) {
-        setData(convertData(data));
-        setStatus(LOAD_STATUS.SUCCESS);
+        dispatch({
+          type: REQUEST_ACTION_TYPE.SUCCESS,
+          payload: convertData(data),
+        });
       } else {
-        setMessage(data.message);
-        setStatus(LOAD_STATUS.ERROR);
+        dispatch({
+          type: REQUEST_ACTION_TYPE.ERROR,
+          payload: data.message,
+        });
       }
     } catch (error) {
-      setMessage(error.message);
-      setStatus(LOAD_STATUS.ERROR);
+      dispatch({
+        type: REQUEST_ACTION_TYPE.ERROR,
+        payload: error.message,
+      });
     }
   };
 
@@ -63,9 +72,9 @@ export default function Container() {
     setPosition({ x: e.clientX, y: e.clientY });
   });
 
-  // if (status === null) {
-  //   getData();
-  // }
+  useEffect(() => {
+    getData();
+  }, []);
 
   return (
     <Grid>
@@ -93,7 +102,7 @@ export default function Container() {
           />
         </Grid>
       </Box>
-      {status === LOAD_STATUS.PROGRESS && (
+      {state.status === REQUEST_ACTION_TYPE.PROGRESS && (
         <Fragment>
           <Box>
             <Skeleton />
@@ -103,16 +112,16 @@ export default function Container() {
           </Box>
         </Fragment>
       )}
-      {status === LOAD_STATUS.ERROR && (
-        <Alert status={status} message={message} />
+      {state.status === REQUEST_ACTION_TYPE.ERROR && (
+        <Alert status={state.status} message={state.message} />
       )}
 
-      {status === LOAD_STATUS.SUCCESS && (
+      {state.status === LOAD_STATUS.SUCCESS && (
         <Fragment>
-          {data.isEmpty ? (
+          {state.data.isEmpty ? (
             <Alert message="Список постів пустий" />
           ) : (
-            data.list.map((item) => (
+            state.data.list.map((item) => (
               <Fragment key={item.id}>
                 <PostItem {...item} />
               </Fragment>
