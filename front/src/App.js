@@ -1,36 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import Page from "./component/page";
+
 import PostList from "./container/post-list";
 
+const Child = lazy(() => import("./Child"));
+
 function App() {
-  const [location, setLocation] = useState(null);
+  const [value, setValue] = useState(0);
 
   useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ latitude, longitude });
-        },
-        (error) => {
-          console.error("Помилка отримання геолокаціїї", error.message);
-        }
-      );
-    } else {
-      console.error("Геолокація не підтримується в цьому браузері");
-    }
+    const id = setInterval(() => setValue((prev) => prev + 1), 1000);
+    return () => clearInterval(id);
   }, []);
+
   return (
     <Page>
-      {location ? (
-        <div>
-          <h2>Ваша геолокація:</h2>
-          <p>Широта: {location.latitude}</p>
-          <p>Довгота: {location.longitude}</p>
-        </div>
-      ) : (
-        <p>Отримання геолокаціїї... </p>
-      )}
+      <div>state: {value}</div>
+      <div>
+        {value > 5 && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Child value={value} />
+          </Suspense>
+        )}
+      </div>
       <PostList />
     </Page>
   );

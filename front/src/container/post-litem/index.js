@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useReducer } from "react";
+import { Fragment, useState, useEffect, useReducer, useCallback } from "react";
 import Box from "../../component/box";
 import PostContent from "../../component/post-content";
 import Grid from "../../component/grid";
@@ -19,7 +19,7 @@ export default function Container({ id, username, text, date }) {
     (state) => ({ ...state, data: { id, username, text, date, reply: null } })
   );
 
-  const getData = async () => {
+  const getData = useCallback(async () => {
     dispatch({ type: REQUEST_ACTION_TYPE.PROGRESS });
 
     try {
@@ -44,7 +44,7 @@ export default function Container({ id, username, text, date }) {
         payload: error.message,
       });
     }
-  };
+  }, [state.data.id]);
   const convertData = ({ post }) => ({
     id: post.id,
     username: post.username,
